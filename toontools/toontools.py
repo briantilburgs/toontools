@@ -20,11 +20,11 @@ def main(args):
         authcode = args.authcode
     except:
         authcode = 0
-    t = Toon(authcode)
+    t = Toon(authcode, args.username, args.password)
     #t.login()
-    #agrid = t.get_agreement_id()
+    agrid = t.get_agreement_id()
     #logging.info("AgreementID is: %s" % agrid)
-    #t.get_status()
+    t.get_status()
 
     return()
 
@@ -32,6 +32,8 @@ if __name__ == '__main__':
     prog = 'python ' + sys.argv[0]
     parser = argparse.ArgumentParser(description='This App Creates an Application Network Profile with all its EPS, Contracts etc')
     parser = argparse.ArgumentParser(prog, usage='%(prog)s [options]')
+    parser.add_argument("--username",     required=True, help='''toon@username.nl''')
+    parser.add_argument("--password",     required=True, help='''T00nP@ssword''')
     parser.add_argument("--authcode",     required=False, help='''cfQEqOGA''')
     parser.add_argument("--getusage",     required=False, help='''gas/ elctricity''')
     parser.add_argument("--exportformat", required=False, help='''excel/ visjs''')
