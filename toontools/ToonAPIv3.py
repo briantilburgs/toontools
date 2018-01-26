@@ -28,10 +28,16 @@ class Toon:
         self.username = username
         self.password = password
         logging.debug("Credentials received: %s" % self.username)
+        
+        with open("conf/toon.json") as data_file:
+            self.toonconf = json.load(data_file)
 
-        self.clientid = "NIciZ91H4w1AIqEWLLKiTg71URuQEu3s"
-        self.clientsecret = "zij4nzKq9oUmVYd7"
-        logging.debug("StartingAuth ")
+
+        self.clientid = self.toonconf['connectioninfo']['consumerkey'] #"NIciZ91H4w1AIqEWLLKiTg71URuQEu3s"
+        self.clientsecret = self.toonconf['connectioninfo']['consumersecret'] #"zij4nzKq9oUmVYd7"
+        self.redirect_uri = self.toonconf['connectioninfo']['redirect_uri']
+
+        logging.debug("StartingAuth %s, %s, %s", (self.clientid, self.clientsecret, self.redirect_uri))
         #self.authenticate_app()
         self.authcode = ""
 
@@ -66,7 +72,7 @@ class Toon:
             "username": self.username,
             "password" :self.password,
             "response_type": "token",
-            "redirect_uri": "http://tilburgs.net",
+            "redirect_uri": self.redirect_uri,
             "client_id":self.clientid,
             "tenant_id":"eneco",
             "state": "",
@@ -87,7 +93,7 @@ class Toon:
         self.auth_token = responseurl.partition("#access_token=")[2].partition("&")[0]   
         logging.debug("Access_Token Implicit : %s" % self.auth_token)
         #return(self.auth_token)
-        return("aA3TMmpsrmIRfN7BZd5WDbtud2ji")
+        return("JfGFEpysKaFMwPyaiGBdGfAQ6PDw")
 
     def get_agreement_id(self):
         '''
