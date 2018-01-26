@@ -61,7 +61,8 @@ def main(args):
     gas  = t.get_cons_elec_gas(gas_elec= 'gas', interval='days')
     elec = t.get_cons_elec_gas(gas_elec= 'electricity', interval='days')
     
-    draw_usage_chart(gas, elec)
+    # Future: Draw Chart in VisJS
+    #draw_usage_chart(gas, elec)
 
     return()
 

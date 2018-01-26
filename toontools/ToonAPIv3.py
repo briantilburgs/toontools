@@ -1,12 +1,8 @@
+# Toon Class and functions for connection via Toon API 
 
-
-import re
 import json
 import logging
 
-import sys
-import uuid
-import pprint
 import requests
 import certifi
 import urllib3
@@ -33,8 +29,8 @@ class Toon:
             self.toonconf = json.load(data_file)
 
 
-        self.clientid = self.toonconf['connectioninfo']['consumerkey'] #"NIciZ91H4w1AIqEWLLKiTg71URuQEu3s"
-        self.clientsecret = self.toonconf['connectioninfo']['consumersecret'] #"zij4nzKq9oUmVYd7"
+        self.clientid     = self.toonconf['connectioninfo']['consumerkey']
+        self.clientsecret = self.toonconf['connectioninfo']['consumersecret']
         self.redirect_uri = self.toonconf['connectioninfo']['redirect_uri']
 
         logging.debug("StartingAuth %s, %s, %s", (self.clientid, self.clientsecret, self.redirect_uri))
@@ -43,7 +39,7 @@ class Toon:
 
         self.oauth2key = "Bearer " + self.get_access_token()
         logging.debug("Authorization: %s" % self.oauth2key)
-        #self.headers = {'Accept': 'application/json', 'Authorization': self.oauth2key, 'content-type': 'application/json'}
+
         self.headers = {
             'Accept': '*/*',
             'Content-Type': 'application/json',

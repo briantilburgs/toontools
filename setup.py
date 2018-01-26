@@ -14,7 +14,7 @@ setup(
     author_email='brian@tilburgs.net',
     url='https://github.com/briantilburgs/toontools',
     packages=find_packages(),
-    install_requires=['requests', ],
+    install_requires=['requests', 'pynteractive', 'certifi', 'webbrowser'],
     license='MIT',
     classifiers=(
         "Development Status :: 3 - Alpha",
