@@ -1,2 +1,2 @@
 import toontools
-import Toon
+import ToonAPIv3

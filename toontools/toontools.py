@@ -4,11 +4,34 @@ import sys
 import argparse
 import logging
 
-from Toon import Toon
+from ToonAPIv3 import Toon
 
 from pynteractive import *
 
 def draw_usage_chart(gas, elec):
+
+    chart=Chart()
+    chart.view()
+    gas_x=[]
+    gas_y=[]
+    for item in gas['days']:
+        gas_x.append((int(item['timestamp'])/1000000))
+        gas_y.append((int(item['value'])))
+
+    elec_x=[]
+    elec_y=[]
+    for item in elec['days']:
+        elec_x.append(item['timestamp'])
+        elec_y.append(item['offPeak'])
+
+    logging.info(gas_x)
+    logging.info(gas_y)
+    chart.addSeries('Gas used', gas_x, gas_y)
+    #chart.addSeries('Electricity used', elec_x, elec_y)
+    chart.addSeries('Squirrels killed by humans',
+    [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+    [200,240,300,313,317,380,360,320,503,460,510,600,550,500,460,490]) 
+
 
 def setlogging(args):
     if args.DEBUG:
