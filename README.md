@@ -11,17 +11,17 @@ For toontools to work you'll need an account to access the API, this can be crea
 
 after logging in register your app in 
 Go to My Apps:
-![alt tag](Toon-API-Registratie-01.png)
+![alt tag](Docu/Toon-API-Registratie-01.png)
 
 Add new App:
-![alt tag](Toon-API-Registratie-02.png)
+![alt tag](Docu/Toon-API-Registratie-02.png)
 
 Choose a name and a fake URL:
 the URL should be reachable, quick and reply as less info as possible
-![alt tag](Toon-API-Registratie-03.png)
+![alt tag](Docu/Toon-API-Registratie-03.png)
 
 Get the Consumer Key & Secret:
-![alt tag](Toon-API-Registratie-04.png)
+![alt tag](Docu/Toon-API-Registratie-04.png)
 
 
 ## Configure toontools
