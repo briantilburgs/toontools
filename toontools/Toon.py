@@ -20,7 +20,7 @@ import time
 class Toon:
     """ Log in to the Toon API, and do stuff. """
     def __init__(self, authcode, username, password, **kwargs):
-        self.apiurl = "https://api.toon.eu/toon"
+        self.apiurl = "https://api.toon.eu"
         self.tokenurl = "https://api.toon.eu/token"
         self.toonapi = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         logging.debug("CertTest is done")
@@ -45,8 +45,13 @@ class Toon:
           }
 
         self.agrid = self.get_agreement_id()
+        self.statenames = { 0 : "Comfort  ", 1 : "Home     ", 2 : "Sleeping ", 3 : "Away     ", 4 : "Holiday? ", 5 : "VeryCold?"}
         self.max_retries = 3
         self.retry_interval = 1
+
+    def msec_to_time(self, msec):
+        date_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(msec/1000.0))
+        return(date_time)
 
     def get_access_token(self):
         """
@@ -81,25 +86,12 @@ class Toon:
 
         self.auth_token = responseurl.partition("#access_token=")[2].partition("&")[0]   
         logging.debug("Access_Token Implicit : %s" % self.auth_token)
-        return(self.auth_token)
+        #return(self.auth_token)
+        return("aA3TMmpsrmIRfN7BZd5WDbtud2ji")
 
     def get_agreement_id(self):
         '''
         Module for getting agreement ID
-        '''
-        logging.debug("Staring Get agreement:")
-
-        """
-        https://api.toon.eu/toon/v3/agreements
-
-        curl -X GET --header "Content-Type: application/json" --header "Authorization: Bearer 5Dun0gE0EOlKnQBQwl2niZJsCLhj" "https://api.toon.eu/toon/v3/agreements"
-        400
-        Bad Request
-        500
-        Internal server error
-
-
-        uri = "v3/agreements"
 
         Expected RESPONSE=
         [
@@ -118,26 +110,10 @@ class Toon:
             "isToonly": false
           }
         ]
-        """
+        '''
+        logging.info("Starting Get agreement:")
 
-        #headers = {
-        #            'Accept': '*/*',
-        #            'Content-Type': 'application/json',
-        #            'Authorization': 'Bearer pPFW2i5Hfw8hkbrgdYdFzM327794'
-        #          }
-        headers = {
-                    'Accept': '*/*',
-                    'Content-Type': 'application/json',
-                    'Authorization': str(self.oauth2key)
-                  }
-        #[DEBUG] Headers: {'Content-Type': 'application/json', 'Authorization': u'Bearer 4kFvt020o654ecTbohErivdIsG5z', 'Accept': '*/*'}
-        #[DEBUG] Headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer pPFW2i5Hfw8hkbrgdYdFzM327794', 'Accept': '*/*'}
-        #[DEBUG] Headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer nqiHpgcouWTC11f10a9yUk8DBTeq', 'Accept': '*/*'}
-
-
-        logging.debug("Headers: %s" % headers)
-
-        uri = "/v3/agreements"
+        uri = "/toon/v3/agreements"
         
         response = requests.get(self.apiurl + uri, headers=self.headers)
         logging.debug("URL: %s" % response.url)
@@ -153,38 +129,144 @@ class Toon:
             logging.info("Error: %s : %s" % (response.json()['fault']['faultstring'], response.json()['fault']['detail']['errorcode']))
 
     def get_status(self):
-        """
-        https://api.toon.eu/toon/v3/107088/status
-        curl -X GET --header "Content-Type: " --header "Authorization: Bearer 5Dun0gE0EOlKnQBQwl2niZJsCLhj" "https://api.toon.eu/toon/v3/107088/status"
-        GET /toon/v3/107088/status HTTP/1.1
-        Accept: */*
-        Accept-Encoding: br
-        Accept-Language:en-us
-        Authorization: Bearer 5Dun0gE0EOlKnQBQwl2niZJsCLhj
-        Content-Type: application/json
-        DNT: 1
-        Host: api.toon.eu
-        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/604.4.7 (KHTML
-        X-Forwarded-For: 85.145.22.182
-        X-Forwarded-Port: 443
-        X-Forwarded-Proto: https
-        """
+        '''
+        Getting complete Toon status
+        '''
+        logging.info("Getting Toon Status:")
 
-        uri = "/v3/" + self.agrid + "/status"
+        uri = "/toon/v3/" + self.agrid + "/status"
         response = requests.get(self.apiurl + uri, headers=self.headers)
-        
-        self.laststatus = response.json()
-        logging.debug("URL: %s" % response.url)
         logging.debug("StatusCode: %s" % response.status_code)
-        logging.debug("Headers: %s" % response.headers)
-        logging.debug("Last status: %s" % (response.json()))
-        return(response.json())
+        logging.debug("Response JSON: %s" % (response.json()))
 
-    def get_usage_from_to(self):
-        '''
-        This function should download usage info in hrs/ days/ mnds/ Years
-        for a given start till end time in msec
-        '''
-        #curl -X GET --header "Content-Type: application/json" --header "Authorization: Bearer DXqOMGNXZeFU3XAKf14FoplyGgFa" "https://api.toon.eu/toon/v3/107088/consumption/electricity/data?fromTime=1388530800000&toTime=1420066800000&interval=hours"
+        if response.status_code == 200:   
+            self.laststatus = response.json()
+        else:
+            logging.info("Error: %s" % response.status_code)
+            exit(1)
 
+        return(self.laststatus)
+
+
+    def get_thermostat_states(self):
+        '''
+        Getting all states with value
+        '''
+        logging.info("Getting States:")
+
+        uri = "/toon/v3/" + self.agrid + "/thermostat/states"
+
+        response = requests.get(self.apiurl + uri, headers=self.headers)
+        logging.debug("StatusCode: %s" % response.status_code)
+        logging.debug("Response JSON: %s" % (response.json()))
+        
+        if response.status_code == 200:
+            self.laststates = response.json()
+            for state in self.laststates['state']:
+                state["name"] = self.statenames[state["id"]]
+                logging.info("%s is set to %d C" % (state["name"], state["tempValue"]/100))
+        else:
+            logging.info("Error: %s" % response.status_code)
+            exit(1)
+
+        return(self.laststates)
+
+    def get_thermostat_state_current(self):
+
+        logging.info("Getting Current state:")
+
+        uri = "/toon/v3/" + self.agrid + "/thermostat"
+
+        response = requests.get(self.apiurl + uri, headers=self.headers)
+        logging.debug("StatusCode: %s" % response.status_code)
+        logging.debug("Response JSON: %s" % (response.json()))
+
+        if response.status_code == 200:
+            self.currentstate = response.json()
+            logging.info("Current Setpoint:     %dC" % (int(self.currentstate["currentSetpoint"])/100))
+            logging.info("Current Temperature:  %dC" % (int(self.currentstate["currentDisplayTemp"])/100))
+            logging.info("Current Prog State:   %d " % self.currentstate["programState"])
+            logging.info("Current State in Prg: %s " % self.statenames[self.currentstate["activeState"]])
+            logging.info("Next State in Prog:   %s " % self.statenames[self.currentstate["nextState"]])
+            #Still fighting with the time....
+            logging.info("Changing in: %s  Minutes        " % (((int(self.currentstate["nextTime"])/1000)/60)/60))
+            logging.info("Changing at: %s          " % (self.msec_to_time(int(time.time())*1000 + int(self.currentstate["nextTime"]))))
+            logging.info("Next Temp:            %dC" % (int(self.currentstate["nextSetpoint"])/100))
+            logging.info("Real Setpoint:        %dC" % (int(self.currentstate["realSetpoint"])/100))
+        else:
+            logging.info("Error: %s" % response.status_code)
+            exit(1)
+
+        return(self.currentstate)
+
+    def get_thermostat_programs(self):
+
+        logging.info("Getting Thermostat Programs")
+
+        uri = "/toon/v3/" + self.agrid + "/thermostat/programs"
+        response = requests.get(self.apiurl + uri, headers=self.headers)
+        logging.debug("StatusCode: %s" % response.status_code)
+        logging.debug("Response JSON: %s" % (response.json()))
+
+        if response.status_code == 200:
+            self.currentprogram = response.json()
+
+        else:
+            logging.info("Error: %s" % response.status_code)
+            exit(1)
+
+        return(self.currentprogram)
+
+    def get_thermostat_curenttemp(self):
+
+        logging.info("Getting Thermostat Current Temp")
+
+        uri = "/toon/v3/" + self.agrid + "/thermostat/programs"
+        response = requests.get(self.apiurl + uri, headers=self.headers)
+        logging.debug("StatusCode: %s" % response.status_code)
+        logging.debug("Response JSON: %s" % (response.json()))
+
+        if response.status_code == 200:
+            self.curenttemp = int(response.json()["currentSetpoint"])/100
+
+        else:
+            logging.info("Error: %s" % response.status_code)
+            exit(1)
+        return(self.curenttemp)
+
+    def get_cons_elec_gas(self, interval='hours', fromtime=1514761200000, totime=(int(time.time())*1000), gas_elec='gas'):
+        '''
+        Get data from 2018-01-01 00:00:00 till now
+        give from and to time in msec
+        give gas_elec: "gas|electricity"
+        response is like: 
+        {   u'hours':   [ {u'timestamp': 1514761200000, u'peak': 0.0, u'unit': u'Wh', u'offPeak': 314.0}, 
+                          {u'timestamp': 1514764800000, u'peak': 0.0, u'unit': u'Wh', u'offPeak': 390.0}
+                        ], 
+            u'weeks': [], 
+            u'months': [], 
+            u'days': [], 
+            u'years': []
+        }
+        '''
+        logging.info("Getting Energy consumption: %s" % gas_elec)
+
+        uri = "/toon/v3/" + self.agrid + "/consumption/" + gas_elec + "/data"
+        formdata = {}
+        formdata['fromTime'] = fromtime
+        formdata['toTime']   = totime
+        formdata['interval'] = interval
+
+        #formdata = { 'fromTime': 1514761200000, 'toTime': (int(time.time())*1000), 'interval':'hours'}
+        response = requests.get(self.apiurl + uri, formdata, headers=self.headers)
+        logging.debug("StatusCode: %s" % response.status_code)
+        logging.debug("Response JSON: %s" % (response.json()))
+        
+        if response.status_code == 200:
+            logging.debug("last usage from: %s to: %s \n %s" % (self.msec_to_time(int(formdata["fromTime"])), self.msec_to_time(int(formdata["toTime"])), response.json()))
+            requestedconsdata = response.json()
+        else:
+            logging.info("Error: %s" % response.status_code)
+            exit(1)
+        return(requestedconsdata)
 

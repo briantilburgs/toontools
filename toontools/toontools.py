@@ -6,6 +6,9 @@ import logging
 
 from Toon import Toon
 
+from pynteractive import *
+
+def draw_usage_chart(gas, elec):
 
 def setlogging(args):
     if args.DEBUG:
@@ -20,11 +23,22 @@ def main(args):
         authcode = args.authcode
     except:
         authcode = 0
+
     t = Toon(authcode, args.username, args.password)
     #t.login()
     agrid = t.get_agreement_id()
-    #logging.info("AgreementID is: %s" % agrid)
+    logging.info("AgreementID is: %s" % agrid)
     t.get_status()
+    t.get_thermostat_states()
+    t.get_thermostat_state_current()
+    t.get_thermostat_programs()
+    if args.getusage:
+        t.get_cons_elec_gas(gas_elec= args.getusage)
+
+    gas  = t.get_cons_elec_gas(gas_elec= 'gas', interval='days')
+    elec = t.get_cons_elec_gas(gas_elec= 'electricity', interval='days')
+    
+    draw_usage_chart(gas, elec)
 
     return()
 
