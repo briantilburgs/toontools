@@ -31,9 +31,8 @@ def msec_to_time(self, msec):
 class Toon:
     """ Log in to the Toon API, and do stuff. """
 
-    def __init__(self,
-                 auth_code, client_id, client_secret, tenant_id, redirect_uri,
-                 **kwargs):
+    def __init__(self, username, password, client_id, client_secret,
+                 tenant_id, redirect_uri="http://fake.url", **kwargs):
         '''Initialise API session and helper variables'''
         self._agreement_id = None
 
@@ -46,10 +45,11 @@ class Toon:
             self.host, self.api_version
         )
 
-        self.auth_code = auth_code
+        self.username = username
+        self.password = password
         self.client_id = client_id
         self.client_secret = client_secret
-        self.tenant_id = tenant_id
+        self.tenant_id = tenant_id  # TODO: Check for valid values
         self.redirect_uri = redirect_uri
 
         self.toonapi = urllib3.PoolManager(
@@ -74,15 +74,19 @@ class Toon:
         with open(filename) as data_file:
             configuration = json.load(data_file)
 
+        username = configuration['connectioninfo']['username']
+        password = configuration['connectioninfo']['password']
         client_id = configuration['connectioninfo']['consumerkey']
         client_secret = configuration['connectioninfo']['consumersecret']
         redirect_uri = configuration['connectioninfo']['redirect_uri']
+        tenant_id = configuration['connectioninfo']['tenant_id']
 
         return cls(
-            auth_code="TODO",
+            username=username,
+            password=password,
             client_id=client_id,
             client_secret=client_secret,
-            tenant_id="TODO",
+            tenant_id=tenant_id,
             redirect_uri=redirect_uri
         )
 
@@ -136,32 +140,29 @@ class Toon:
         """(re)authenticate against Toon API"""
         logging.info("Authenticate Application to Toon Webform")
 
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        # Retrieve API Code using username/password
+        params = {'username': self.username, 'password': self.password}
+        url = 'https://{}/authorize'.format(self.host)
+        response = self._session.get(url, params=params, headers=headers)
+        print(response.text)
+        exit()
+
+        # Retrieve token
         payload = (
             "client_id={}"
             "&tenant_id={}"
             "&grant_type=authorization_code"
             "code={}".format(
-                self.client_id, self.tenant_id, self.auth_code
+                self.client_id, self.tenant_id, 'code'
             )
         )
 
-        # Ask for redirection?
-        url = (
-            'https://{}/authorize?response_type={}&'
-            'redirect_uri={}&'
-            'client_id={}&'
-            'tenant_id={}'.format(
-                self.host, self.auth_code, self.redirect_uri,
-                self.client_id, self.tenant_id
-            )
-        )
-        response = self._session.get(url)
-
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
         url = 'https://{}/token'.format(self.host)
-        response = requests.get(url, data=payload, headers=headers)
+        response = requests.post(url, data=payload, headers=headers)
 
         if response.status_code != requests.codes.ok:
             raise IOError(
@@ -173,7 +174,7 @@ class Toon:
             )
 
         token = response.text
-
+        print(token)
         # TODO: parse 'expires_in' field and request new token if expired
 
         auth_header = {
