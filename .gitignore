@@ -1,6 +1,5 @@
 # Configuration files
-conf/toon.json
-toontools/conf/toon.json
+*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

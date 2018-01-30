@@ -1,0 +1,10 @@
+{
+	"connectioninfo": {
+        "consumerkey": "create through developer portal",
+        "consumersecret":"create through developer portal",
+        "redirect_uri":"http://fake.url",
+        "tenant_id": "eneco",
+        "username": "john@doe.com",
+        "password": "python4thewin"
+    }
+}

@@ -4,7 +4,9 @@ import logging
 
 import requests
 import certifi
+
 import urllib3
+import urllib
 
 import time
 
@@ -19,7 +21,7 @@ STATENAMES = [
 ]
 
 
-def msec_to_time(self, msec):
+def msec_to_time(msec):
     '''Convert miliseconds to Python datetime object'''
 
     date_time = time.strftime(
@@ -144,22 +146,35 @@ class Toon:
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
+        # self.client_id = '5DXjEsAC5fYOLX18iqzUtWEJgJ6dfiVu'
         # Retrieve API Code using username/password
-        params = {'username': self.username, 'password': self.password}
-        url = 'https://{}/authorize'.format(self.host)
-        response = self._session.get(url, params=params, headers=headers)
-        print(response.text)
-        exit()
+        params = {
+            'username': self.username,
+            'password': self.password,
+            'response_type': 'code',
+            'tenant_id': self.tenant_id,
+            'client_id': self.client_id,
+            'state': '',
+            'scope': ''
+        }
+
+        # if authenticated succesfully this will do a redirect
+        # to our fake callback url. We grab the code from
+        # the redirect url and use it to retrieve our token
+        url = 'https://{}/authorize/legacy'.format(self.host)
+        response = requests.post(url, data=params, headers=headers)
+        
+        parsed_url = urllib.parse.urlparse(response.url)
+        code = urllib.parse.parse_qs(parsed_url.query)['code'][0]
+        logging.debug('Retrieved code: {}'.format(code))
 
         # Retrieve token
-        payload = (
-            "client_id={}"
-            "&tenant_id={}"
-            "&grant_type=authorization_code"
-            "code={}".format(
-                self.client_id, self.tenant_id, 'code'
-            )
-        )
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "grant_type": "authorization_code",
+            "code": code
+        }
 
         url = 'https://{}/token'.format(self.host)
         response = requests.post(url, data=payload, headers=headers)
@@ -167,18 +182,23 @@ class Toon:
         if response.status_code != requests.codes.ok:
             raise IOError(
                 'HTTP POST {} failed ({}). response: {}'.format(
-                    url,
+                    response.url,
                     response.status_code,
                     response.text
                 )
             )
 
-        token = response.text
-        print(token)
-        # TODO: parse 'expires_in' field and request new token if expired
+        data = response.json()
+
+        self.token = data['access_token']
+
+        # TODO: check token expiry date and before each 
+        # http call check if we need to refresh
+        # self.token_expires_at = datetime + data['expires_in']
+        # self.refresh_token = data['refresh_token']
 
         auth_header = {
-            'Authorization': 'Bearer {}'.format(token)
+            'Authorization': 'Bearer {}'.format(self.token)
         }
         self._session.headers.update(auth_header)
 
@@ -200,7 +220,7 @@ class Toon:
     def get_status(self):
         """Getting complete Toon status"""
         logging.info("Getting Toon Status:")
-        endpoint = "{}/status".format(self.agreemend_id)
+        endpoint = "{}/status".format(self.agreement_id)
         return self._get(endpoint)
 
     def get_thermostat_states(self):
@@ -251,7 +271,7 @@ class Toon:
             (((int(current_state["nextTime"])/1000)/60)/60)
         ))
         logging.info("Changing at: {}".format(
-            self.msec_to_time(
+            msec_to_time(
                 int(time.time())*1000 +
                 int(current_state["nextTime"])
             )
@@ -278,11 +298,11 @@ class Toon:
 
         logging.info("Getting Thermostat Current Temp")
 
-        uri = "{}/thermostat/programs".format(self.agreement_id)
+        uri = "{}/thermostat".format(self.agreement_id)
         response = self._get(uri)
 
-        self.currenttemp = int(response.json()["currentSetpoint"])/100
-        return(self.currenttemp)
+        current_temp = int(response["currentSetpoint"])/100
+        return current_temp
 
     def get_cons_elec_gas(self, interval='hours',
                           from_time=1514761200000,
@@ -323,8 +343,8 @@ class Toon:
         response = self._get(uri, payload)  # NOTE shouldnt this be POST?
 
         logging.debug("last usage from: {} to: {}\n {}".format(
-            self.msec_to_time(int(payload["fromTime"])),
-            self.msec_to_time(int(payload["toTime"])),
+            msec_to_time(int(payload["fromTime"])),
+            msec_to_time(int(payload["toTime"])),
             response
         ))
 
