@@ -32,7 +32,7 @@ class Toon:
     """ Log in to the Toon API, and do stuff. """
 
     def __init__(self,
-                 auth_code, client_id, client_secret, redirect_uri,
+                 auth_code, client_id, client_secret, tenant_id, redirect_uri,
                  **kwargs):
         '''Initialise API session and helper variables'''
         self._agreement_id = None
@@ -49,6 +49,7 @@ class Toon:
         self.auth_code = auth_code
         self.client_id = client_id
         self.client_secret = client_secret
+        self.tenant_id = tenant_id
         self.redirect_uri = redirect_uri
 
         self.toonapi = urllib3.PoolManager(
@@ -57,7 +58,7 @@ class Toon:
         logging.debug("CertTest is done")
 
         self._session = requests.session()
-        self._session.headers.update_headers(
+        self._session.headers.update(
             {
                 'Content-Type': 'application/json',
                 'Cache-Control': 'no-cache'
@@ -70,7 +71,7 @@ class Toon:
     def load_from_config(cls, filename='conf/toon.json'):
         """Initialise Toon class from configuration file"""
 
-        with open("conf/toon.json") as data_file:
+        with open(filename) as data_file:
             configuration = json.load(data_file)
 
         client_id = configuration['connectioninfo']['consumerkey']
@@ -78,8 +79,10 @@ class Toon:
         redirect_uri = configuration['connectioninfo']['redirect_uri']
 
         return cls(
+            auth_code="TODO",
             client_id=client_id,
             client_secret=client_secret,
+            tenant_id="TODO",
             redirect_uri=redirect_uri
         )
 
@@ -94,7 +97,8 @@ class Toon:
 
         if response.status_code != requests.codes.ok:
             raise IOError(
-                'HTTP GET {} failed ({}). reponse: {}'.format(
+                'HTTP GET {} failed ({}). response: {}'.format(
+                    url,
                     response.status_code,
                     response.text
                 )
@@ -116,7 +120,8 @@ class Toon:
 
         if response.status_code != requests.codes.ok:
             raise IOError(
-                'HTTP POST {} failed ({}). reponse: {}'.format(
+                'HTTP POST {} failed ({}). response: {}'.format(
+                    url,
                     response.status_code,
                     response.text
                 )
@@ -146,7 +151,7 @@ class Toon:
             'redirect_uri={}&'
             'client_id={}&'
             'tenant_id={}'.format(
-                self.auth_code, self.redirect_uri,
+                self.host, self.auth_code, self.redirect_uri,
                 self.client_id, self.tenant_id
             )
         )
@@ -155,9 +160,17 @@ class Toon:
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-        response = requests.get('https://{}/token'.format(
-            self.host, data=payload, headers=headers
-        ))
+        url = 'https://{}/token'.format(self.host)
+        response = requests.get(url, data=payload, headers=headers)
+
+        if response.status_code != requests.codes.ok:
+            raise IOError(
+                'HTTP POST {} failed ({}). response: {}'.format(
+                    url,
+                    response.status_code,
+                    response.text
+                )
+            )
 
         token = response.text
 
