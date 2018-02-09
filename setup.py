@@ -3,7 +3,7 @@
 
 from setuptools import setup, find_packages
 
-version = '0.1.0'
+version = '0.2.0'
 
 setup(
     name='toontools',
@@ -14,7 +14,7 @@ setup(
     author_email='brian@tilburgs.net',
     url='https://github.com/briantilburgs/toontools',
     packages=find_packages(),
-    install_requires=['requests', 'pynteractive', 'certifi', 'webbrowser'],
+    install_requires=['requests', 'pynteractive', 'certifi', 'webbrowser', 'xlsxwriter'],
     license='MIT',
     classifiers=(
         "Development Status :: 3 - Alpha",

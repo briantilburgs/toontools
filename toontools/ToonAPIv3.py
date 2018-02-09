@@ -97,7 +97,8 @@ class Toon:
         url = "{}/{}".format(self.apiurl, endpoint)
 
         if payload is not None:
-            response = self._session.get(url, data=json.dumps(payload))
+            #response = self._session.get(url, json.dumps(payload))
+            response = self._session.get(url, params=payload)
         else:
             response = self._session.get(url)
 
@@ -120,9 +121,9 @@ class Toon:
         url = "{}/{}".format(self.apiurl, endpoint)
 
         if payload is not None:
-            response = self._session.post(url)
+            response = self._session.post(url, params=payload)
         else:
-            response = self._session.post(url, data=json.dumps(payload))
+            response = self._session.post(url)
 
         if response.status_code != requests.codes.ok:
             raise IOError(
@@ -221,7 +222,11 @@ class Toon:
         """Getting complete Toon status"""
         logging.info("Getting Toon Status:")
         endpoint = "{}/status".format(self.agreement_id)
-        return self._get(endpoint)
+
+        status = self._get(endpoint)
+        logging.debug(status)
+
+        return status
 
     def get_thermostat_states(self):
         """Getting all states with value"""
@@ -267,14 +272,11 @@ class Toon:
             STATENAMES[int(current_state["nextState"])]
         ))
         # Still fighting with the time....
-        logging.info("Changing in: {}  Minutes".format(
-            (((int(current_state["nextTime"])/1000)/60)/60)
+        logging.info("Changing at: {}  sec".format(
+            (int(current_state["nextTime"]))
         ))
-        logging.info("Changing at: {}".format(
-            msec_to_time(
-                int(time.time())*1000 +
-                int(current_state["nextTime"])
-            )
+        logging.info("Changing at: {}  ".format(
+            (msec_to_time(current_state["nextTime"]*1000))
         ))
         logging.info("Next Temp:            {}C".format(
             (int(current_state["nextSetpoint"])/100)
@@ -329,7 +331,7 @@ class Toon:
             u'years': []
         }
         """
-        logging.info("Getting Energy consumption: %s" % gas_elec)
+        logging.info("Getting Energy consumption: {} for {}, from {}, to {}".format(gas_elec, interval, from_time, to_time))
 
         uri = "{}/consumption/{}/data".format(
             self.agreement_id, gas_elec
@@ -340,11 +342,12 @@ class Toon:
             'interval': interval
         }
 
-        response = self._get(uri, payload)  # NOTE shouldnt this be POST?
+        response = self._get(uri, payload=payload)
 
-        logging.debug("last usage from: {} to: {}\n {}".format(
+        logging.debug("last usage from: {} to: {}\n with payload: {}\n {}".format(
             msec_to_time(int(payload["fromTime"])),
             msec_to_time(int(payload["toTime"])),
+            payload,
             response
         ))
 
