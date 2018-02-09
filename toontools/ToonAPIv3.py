@@ -16,8 +16,8 @@ STATENAMES = [
     "Home",
     "Sleeping",
     "Away",
-    "Holiday?",
-    "VeryCold?"
+    "Holiday",
+    "tempoff"
 ]
 
 
@@ -139,6 +139,30 @@ class Toon:
         except ValueError:
             return response.text
 
+
+    def _put(self, endpoint, payload=None):
+        """Perform HTTP POST request against Toon API"""
+        url = "{}/{}".format(self.apiurl, endpoint)
+
+        if payload is not None:
+            response = self._session.put(url, data=payload)
+        else:
+            response = self._session.put(url)
+
+        if response.status_code != requests.codes.ok:
+            raise IOError(
+                'HTTP PUT {} failed ({}). response: {}'.format(
+                    url,
+                    response.status_code,
+                    response.text
+                )
+            )
+
+        try:
+            return response.json()
+        except ValueError:
+            return response.text
+
     def _authenticate(self):
         """(re)authenticate against Toon API"""
         logging.info("Authenticate Application to Toon Webform")
@@ -224,8 +248,7 @@ class Toon:
         endpoint = "{}/status".format(self.agreement_id)
 
         status = self._get(endpoint)
-        logging.debug(status)
-
+        logging.info("Current Setpoin: {}, Current Temp: {}".format(status["thermostatInfo"]["currentSetpoint"]/100, status["thermostatInfo"]["currentDisplayTemp"]/100))
         return status
 
     def get_thermostat_states(self):
@@ -271,7 +294,6 @@ class Toon:
         logging.info("Next State in Prog:   {}".format(
             STATENAMES[int(current_state["nextState"])]
         ))
-        # Still fighting with the time....
         logging.info("Changing at: {}  sec".format(
             (int(current_state["nextTime"]))
         ))
@@ -352,3 +374,67 @@ class Toon:
         ))
 
         return response
+
+    def get_termostat_states(self):
+
+        logging.info("Getting Thermostat states: ")
+
+        uri = "{}/thermostat/states".format(
+            self.agreement_id
+        )
+
+        payload = { }
+        response = self._get(uri, payload=payload)
+        logging.debug(response)
+
+    def set_termostat_states(self, 
+                             Comfort="2100",
+                             Home="2000",
+                             Sleeping="1500",
+                             Away="1200",
+                             Holiday="1600",
+                             tempoff="600"):
+
+        logging.info("Setting Thermostat states: ")
+
+        uri = "{}/thermostat/states".format(
+            self.agreement_id
+        )
+
+        payload = '''{ "state" : 
+            [ 
+              {"id" : "0","tempValue" : "''' + Comfort +  '''","dhw" : "1"},
+              {"id" : "1","tempValue" : "''' + Home +     '''","dhw" : "1"},
+              {"id" : "2","tempValue" : "''' + Sleeping + '''","dhw" : "1"},
+              {"id" : "3","tempValue" : "''' + Away +     '''","dhw" : "1"},
+              {"id" : "4","tempValue" : "''' + Holiday +  '''","dhw" : "1"},
+              {"id" : "5","tempValue" : "''' + tempoff +   '''","dhw" : "1"} 
+            ]
+        }'''
+
+        response = self._put(uri, payload=payload)
+        
+        return response
+
+    def set_termostat_temp(self, state="2", temp="1600", prog="1"):
+
+        logging.info("Setting Current Temp states: ")
+
+        uri = "{}/thermostat".format(
+            self.agreement_id
+        )
+
+        #            "currentSetpoint": "1500",
+
+        payload = '''{
+                    "currentSetpoint": "''' + temp + '''",
+                    "programState": "''' + prog + '''",
+                    "activeState": "''' + state + '''"
+                   }'''
+        print(payload)
+        response = self._put(uri, payload=payload)
+        print(response)
+        return response
+
+
+
