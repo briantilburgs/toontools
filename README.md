@@ -6,6 +6,11 @@ Since the people of Toon/ Eneco don't like to give you access to your own inform
 This library contains a Toon connection (ToonAPIv3) and a toontools script that can be used to access toon data/ settings and 
 set values to Toon.
 
+This tool connects to Toon, downloads usage data and stores the data in Excel.
+
+Toon export tool: exporteer gebruiksdata van Toon, Toon export naar excel
+
+
 ## Create API keys
 For toontools to work you'll need an account to access the API, this can be created at: https://developer.toon.eu/
 
