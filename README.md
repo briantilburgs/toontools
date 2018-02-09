@@ -26,3 +26,15 @@ Get the Consumer Key & Secret:
 
 ## Configure toontools
 The Consumer Key & Secret are needed in the Python program: place the values in conf/toon.json
+
+
+## Use Toon Tools
+Toontools will create an Excel file in de local directory with the requested usage.
+- one Tab per Electricity/ Gas+Interval
+- Filename will use Timestamp & Agreement ID
+- Request all information at once
+
+## Usage
+
+python toontools/toontools.py --help
+python toontools/toontools.py --getusageinter all --getusagestart 2018-01-01

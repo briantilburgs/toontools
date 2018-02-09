@@ -48,23 +48,33 @@ def get_usage_from_to(t, interval='hours',
 
     from_time_msec = day_to_msec(from_time)
     to_time_msec = day_to_msec(to_time)
-    returndata = {}
+    returndata = { 
+        'gas':         {'hours': [], 'days': [], 'weeks': [], 'months': [], 'years': []},
+        'electricity': {'hours': [], 'days': [], 'weeks': [], 'months': [], 'years': []}
+    }
+
     get_ge = []
 
     if gas_elec == 'both':
         get_ge.append('gas')
         get_ge.append('electricity')
-
     else:
         get_ge.append(gas_elec)
+
+    if args.getusageinter == 'all':
+        usageinter = ['hours', 'days', 'weeks', 'months', 'years']
+    else:
+        usageinter = [ args.getusageinter ]
 
     logging.info('Getting data from: {}({}) till: {}({})'.format(from_time, from_time_msec, to_time, to_time_msec))
 
     for ge in get_ge:
-        returndata[ge] = t.get_cons_elec_gas(interval=interval,
+        for uinter in usageinter:
+            response = t.get_cons_elec_gas(interval=uinter,
                                              from_time=from_time_msec,
                                              to_time=to_time_msec,
                                              gas_elec=ge)
+            returndata[ge][uinter] = response[uinter]
 
     return returndata
 
@@ -95,10 +105,10 @@ def write_to_new_sheet(wb, data, ge, interv):
         row += 1
 
 
-def write_to_xlsx(data):
+def write_to_xlsx(data, namedata):
 
     # Create a workbook and add a worksheet.
-    filename = 'Toon-Usage_' + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.xlsx'
+    filename = 'Toon-Usage_' + namedata + '_' + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.xlsx'
     wb = xlsxwriter.Workbook(filename)
     logging.info("Writing into File: {}".format(filename))
     nrsht = 0
@@ -135,17 +145,15 @@ def main(args):
     t.get_thermostat_state_current()
     t.get_thermostat_programs()
     t.get_thermostat_current_temp()
-
+    
     usagedict = get_usage_from_to(t, 
                                   interval=args.getusageinter,
                                   from_time=args.getusagestart,
                                   to_time=args.getusagestop,
                                   gas_elec=args.getusage)
     
-    write_to_xlsx(usagedict)
+    write_to_xlsx(usagedict, t._agreement_id)
 
-    # Future: Draw Chart in VisJS
-    #draw_usage_chart(gas, elec)
 
     return()
 
@@ -153,13 +161,11 @@ if __name__ == '__main__':
     prog = 'python ' + sys.argv[0]
     parser = argparse.ArgumentParser(description='This App Creates an Application Network Profile with all its EPS, Contracts etc')
     parser = argparse.ArgumentParser(prog, usage='%(prog)s [options]')
-    parser.add_argument("--username",     required=False, help='''toon@username.nl''')
-    parser.add_argument("--password",     required=False, help='''T00nP@ssword''')
     parser.add_argument("--getusage",     required=False, default='both', help='''gas/ electricity/ both''')
     parser.add_argument("--getusageinter",required=False, default="hours", help='''hours/ days/ weeks/ months/ year/ all''')
     parser.add_argument("--getusagestart",required=False, default="2018-01-01", help='''2018-01-01''')
     parser.add_argument("--getusagestop", required=False, default=datetime.datetime.now().strftime("%Y-%m-%d"), help='''2018-01-01''')
-    parser.add_argument("--exportformat", required=False, default="excel", help='''excel/ visjs''')
+    parser.add_argument("--exportformat", required=False, default="excel", help='''excel/ visjs (Future feature)''')
     parser.add_argument("--DEBUG",    action='store_true')
     args = parser.parse_args()
     main(args)

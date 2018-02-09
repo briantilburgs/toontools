@@ -107,7 +107,7 @@ toon_env/
 # mypy
 .mypy_cache/
 
+*.xlsx
 
-Docu/Eneco Login-Implicit.html
+Docu/Eneco Login*
 
-Docu/Eneco Login.html
