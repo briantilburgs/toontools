@@ -3,7 +3,7 @@
 
 from setuptools import setup, find_packages
 
-version = '0.2.0'
+version = '1.0.0'
 
 setup(
     name='toontools',
@@ -17,11 +17,13 @@ setup(
     install_requires=['requests', 'pynteractive', 'certifi', 'webbrowser', 'xlsxwriter'],
     license='MIT',
     classifiers=(
-        "Development Status :: 3 - Alpha",
-        'Intended Audience :: Developers',
+        "Development Status :: 4 - Beta",
+        'Intended Audience :: End Users/Desktop',
         'Programming Language :: Python',
         "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ),
