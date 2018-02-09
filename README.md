@@ -8,7 +8,7 @@ set values to Toon.
 
 This tool connects to Toon, downloads usage data and stores the data in Excel.
 
-Toon export tool: exporteer gebruiksdata van Toon, Toon export naar excel
+Toon export tool: exporteer gebruiksdata van Toon, Toon export naar excel, eneco Toon export usage data, eneco Toon exporteren usage data
 
 
 ## Create API keys
