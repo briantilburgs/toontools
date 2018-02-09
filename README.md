@@ -1,6 +1,6 @@
 # toontools
 
-toontools is just a python library for connecting to the Toon API and work with your own data.
+toontools is just a python library for connecting to the officiel Toon API and work with your own data.
 
 Since the people of Toon/ Eneco don't like to give you access to your own information, we need to get it ourselves. 
 This library contains a Toon connection (ToonAPIv3) and a toontools script that can be used to access toon data/ settings and 
