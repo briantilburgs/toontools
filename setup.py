@@ -14,7 +14,7 @@ setup(
     author_email='brian@tilburgs.net',
     url='https://github.com/briantilburgs/toontools',
     packages=find_packages(),
-    install_requires=['requests', 'pynteractive', 'certifi', 'webbrowser', 'xlsxwriter'],
+    install_requires=['requests', 'pynteractive', 'certifi', 'xlsxwriter'],
     license='MIT',
     classifiers=(
         "Development Status :: 4 - Beta",
