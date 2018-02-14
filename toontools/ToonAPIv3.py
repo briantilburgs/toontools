@@ -387,6 +387,8 @@ class Toon:
         response = self._get(uri, payload=payload)
         logging.debug(response)
 
+        return response
+
     def set_termostat_states(self, 
                              Comfort="2100",
                              Home="2000",
@@ -424,16 +426,53 @@ class Toon:
             self.agreement_id
         )
 
-        #            "currentSetpoint": "1500",
-
         payload = '''{
                     "currentSetpoint": "''' + temp + '''",
                     "programState": "''' + prog + '''",
                     "activeState": "''' + state + '''"
                    }'''
-        print(payload)
         response = self._put(uri, payload=payload)
-        print(response)
+        return response
+
+    def get_devices(self):
+        """Retrieve all available devices and show states"""
+
+        logging.info("Getting Devices")
+
+        uri = "{}/devices".format(self.agreement_id)
+        response = self._get(uri)
+        for dev in response:
+            logging.info("{} device type: {}, state: {}, uuid {}".format(dev['name'], dev['deviceType'], dev['currentState'], dev['uuid']))
+
+        return response
+
+    def get_device(self, devuuid):
+        """Retrieve one  devices and show state"""
+
+        logging.info("Getting Device: {}".format(devuuid))
+
+        uri = "{}/devices/{}".format(self.agreement_id, devuuid)
+        dev = self._get(uri)
+        logging.info("{} device type: {}, state: {}".format(dev['name'], dev['deviceType'], dev['currentState'], dev['uuid']))
+
+        return dev
+
+    def set_device(self, devuuid, state='0'):
+        """Set device state """
+
+        logging.info("Setting Device: {}".format(devuuid))
+
+        uri = "{}/devices/{}".format(
+            self.agreement_id, 
+            devuuid
+        )
+
+        payload = '''{
+                    "uuid": "''' + devuuid + '''",
+                    "currentState": "''' + state + '''"
+                   }'''
+
+        response = self._put(uri, payload=payload)
         return response
 
 
