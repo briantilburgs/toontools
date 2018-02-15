@@ -34,7 +34,7 @@ The Consumer Key & Secret are needed in the Python program: place the values in 
 
 
 ## Install with Python3
-'''
+'''python
 virtualenv -p /usr/bin/python3 toon_env
 source toon_env/bin/activate
 python setup.py install
