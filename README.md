@@ -34,11 +34,11 @@ The Consumer Key & Secret are needed in the Python program: place the values in 
 
 
 ## Install with Python3
-'virtualenv -p /usr/bin/python3 toon_env'
+`virtualenv -p /usr/bin/python3 toon_env`
 
-'source toon_env/bin/activate'
+`source toon_env/bin/activate`
 
-'python setup.py install'
+`python setup.py install
 
 ## Use Toon Tools
 Toontools will create an Excel file in de local directory with the requested usage.
