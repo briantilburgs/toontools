@@ -33,6 +33,11 @@ Get the Consumer Key & Secret:
 The Consumer Key & Secret are needed in the Python program: place the values in conf/toon.json
 
 
+## Install with Python3
+virtualenv -p /usr/bin/python3 toon_env
+source toon_env/bin/activate
+python setup.py install
+
 ## Use Toon Tools
 Toontools will create an Excel file in de local directory with the requested usage.
 - one Tab per Electricity/ Gas+Interval
@@ -41,5 +46,8 @@ Toontools will create an Excel file in de local directory with the requested usa
 
 ## Usage
 
+source toon_env/bin/activate
+
 python toontools/toontools.py --help
+
 python toontools/toontools.py --getusageinter all --getusagestart 2018-01-01
