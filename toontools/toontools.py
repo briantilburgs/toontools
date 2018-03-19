@@ -9,9 +9,11 @@ import xlsxwriter
 
 from ToonAPIv3 import Toon
 
+
 def write_data_to_excel():
     # Create new Excel ad write data to tabs
     pass
+
 
 def msec_to_time(msec):
     '''Convert miliseconds to Python datetime object - Date & Time'''
@@ -21,6 +23,7 @@ def msec_to_time(msec):
     )
     return(date_time)
 
+
 def msec_to_day(msec):
     '''Convert miliseconds to Python datetime object - Date Only'''
     timepattern = '%Y-%m-%d'
@@ -29,6 +32,7 @@ def msec_to_day(msec):
         timepattern, time.localtime(msec/1000.0)
     )
     return(date_time)
+
 
 def day_to_msec(data_time):
     '''Convert Python datetime object to miliseconds - Date Only'''
@@ -41,16 +45,32 @@ def day_to_msec(data_time):
         ) * 1000
     return(msec)
 
-def get_usage_from_to(t, interval='hours',
-                          from_time="2018-01-01",
-                          to_time=datetime.datetime.now().strftime("%Y-%m-%d"),
-                          gas_elec='both'):
+
+def get_usage_from_to(
+        t,
+        interval='hours',
+        from_time="2018-01-01",
+        to_time=datetime.datetime.now().strftime("%Y-%m-%d"),
+        gas_elec='both'
+        ):
 
     from_time_msec = day_to_msec(from_time)
     to_time_msec = day_to_msec(to_time)
-    returndata = { 
-        'gas':         {'hours': [], 'days': [], 'weeks': [], 'months': [], 'years': []},
-        'electricity': {'hours': [], 'days': [], 'weeks': [], 'months': [], 'years': []}
+    returndata = {
+        'gas':         {
+            'hours': [],
+            'days': [],
+            'weeks': [],
+            'months': [],
+            'years': []
+            },
+        'electricity': {
+            'hours': [],
+            'days': [],
+            'weeks': [],
+            'months': [],
+            'years': []
+            }
     }
 
     get_ge = []
@@ -64,19 +84,27 @@ def get_usage_from_to(t, interval='hours',
     if args.getusageinter == 'all':
         usageinter = ['hours', 'days', 'weeks', 'months', 'years']
     else:
-        usageinter = [ args.getusageinter ]
+        usageinter = [args.getusageinter]
 
-    logging.info('Getting data from: {}({}) till: {}({})'.format(from_time, from_time_msec, to_time, to_time_msec))
+    logging.info('Getting data from: {}({}) till: {}({})'.format(
+            from_time,
+            from_time_msec,
+            to_time,
+            to_time_msec)
+            )
 
     for ge in get_ge:
         for uinter in usageinter:
-            response = t.get_cons_elec_gas(interval=uinter,
-                                             from_time=from_time_msec,
-                                             to_time=to_time_msec,
-                                             gas_elec=ge)
+            response = t.get_cons_elec_gas(
+                interval=uinter,
+                from_time=from_time_msec,
+                to_time=to_time_msec,
+                gas_elec=ge
+                )
             returndata[ge][uinter] = response[uinter]
 
     return returndata
+
 
 def write_to_new_sheet(wb, data, ge, interv):
     logging.debug('Write to Excel: {}'.format(data))
@@ -89,14 +117,14 @@ def write_to_new_sheet(wb, data, ge, interv):
             headers = list(sample.keys())
             logging.debug("Alle Keys registered for row0 {}".format(headers))
             for key in headers:
-                worksheet.write(row, col , key)
-                col+=1
-            row+=1
-            col=0
+                worksheet.write(row, col, key)
+                col += 1
+            row += 1
+            col = 0
         for key in headers:
-            worksheet.write(row, col , sample[key])
-            col+=1
-        col=0
+            worksheet.write(row, col, sample[key])
+            col += 1
+        col = 0
 
         tijd = msec_to_time(sample['timestamp'])
 
@@ -132,6 +160,7 @@ def setlogging(args):
     else:
         logging.basicConfig(level=logging.INFO, format='%(message)s',)
 
+
 def main(args):
     setlogging(args)
 
@@ -145,21 +174,21 @@ def main(args):
     t.get_thermostat_state_current()
     t.get_thermostat_programs()
     t.get_thermostat_current_temp()
-    
+
     usagedict = get_usage_from_to(t, 
                                   interval=args.getusageinter,
                                   from_time=args.getusagestart,
                                   to_time=args.getusagestop,
                                   gas_elec=args.getusage)
-    
-    write_to_xlsx(usagedict, t._agreement_id)
 
+    write_to_xlsx(usagedict, t._agreement_id)
 
     return()
 
+
 if __name__ == '__main__':
     prog = 'python ' + sys.argv[0]
-    parser = argparse.ArgumentParser(description='This App Creates an Application Network Profile with all its EPS, Contracts etc')
+    parser = argparse.ArgumentParser(description='This Script retrieves Usage data and saves all to Excel format')
     parser = argparse.ArgumentParser(prog, usage='%(prog)s [options]')
     parser.add_argument("--getusage",     required=False, default='both', help='''gas/ electricity/ both''')
     parser.add_argument("--getusageinter",required=False, default="hours", help='''hours/ days/ weeks/ months/ year/ all''')
